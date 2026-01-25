@@ -3,6 +3,7 @@ import os
 import zipfile
 from tools.invoice_tool import generate_invoices
 from tools.csv_cleaner import clean_csv
+from tools.pdf_to_excel import pdf_to_excel
 
 app = Flask(__name__)
 
@@ -47,3 +48,18 @@ def csv_cleaner():
     cleaned_file = clean_csv(upload_path, output_dir)
 
     return send_file(cleaned_file, as_attachment=True)
+
+@app.route("/pdf-to-excel", methods=["POST"])
+def pdf_to_excel_route():
+    uploaded_file = request.files["file"]
+
+    pdf_path = os.path.join("uploads", uploaded_file.filename)
+    uploaded_file.save(pdf_path)
+
+    output_dir = os.path.join("outputs", "pdf_to_excel")
+
+    try:
+        excel_file = pdf_to_excel(pdf_path, output_dir)
+        return send_file(excel_file, as_attachment=True)
+    except Exception as e:
+        return f"Error: {str(e)}"

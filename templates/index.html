@@ -25,20 +25,17 @@
         <button type="submit">Clean CSV</button>
     </form>
 </div>
+    <div class="tool-card">
+    <h3>PDF to Excel</h3>
+    <p>Extract tables from PDF into Excel file.</p>
 
-
-    <!-- FUTURE TOOLS PLACEHOLDER -->
-    <div class="tool-card disabled">
-        <h3>PDF to Excel</h3>
-        <p>Coming Soon</p>
-    </div>
-
-    <div class="tool-card disabled">
-        <h3>CSV Cleaner</h3>
-        <p>Coming Soon</p>
-    </div>
-
+    <form action="/pdf-to-excel" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".pdf" required>
+        <button type="submit">Convert PDF</button>
+    </form>
 </div>
+
+
 
 {% endblock %}
 

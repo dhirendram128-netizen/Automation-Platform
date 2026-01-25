@@ -3,6 +3,9 @@ pandas
 jinja2
 pdfkit
 gunicorn
+pdfplumber
+openpyxl
+
 
 
 
