@@ -63,7 +63,10 @@ def invoice():
             for pdf in pdf_files:
                 zipf.write(pdf, os.path.basename(pdf))
 
-        return send_file(zip_path, as_attachment=True)
+        return jsonify({
+    "status": "ready",
+    "file_path": zip_path
+})
 
     except Exception as e:
         return f"Invoice generation failed: {str(e)}", 500
@@ -87,7 +90,10 @@ def csv_cleaner_route():
 
     try:
         cleaned_file = clean_csv(upload_path, os.path.join(OUTPUT_FOLDER, "csv_cleaner"))
-        return send_file(cleaned_file, as_attachment=True)
+        return jsonify({
+    "status": "ready",
+    "file_path": cleaned_file
+})
     except Exception as e:
         return f"CSV cleaning failed: {str(e)}", 400
 
@@ -110,7 +116,10 @@ def pdf_to_excel_route():
 
     try:
         excel_file = pdf_to_excel(pdf_path, os.path.join(OUTPUT_FOLDER, "pdf_to_excel"))
-        return send_file(excel_file, as_attachment=True)
+        return jsonify({
+    "status": "ready",
+    "file_path": excel_file
+})
     except Exception:
         return "This PDF does not contain extractable tables.", 400
 
@@ -194,12 +203,9 @@ def download_file(token):
     with open(token_file) as f:
         file_path = f.read()
 
-    os.remove(token_file)
+    os.remove(token_file)  # one-time download
 
-    return {
-    "status": "ready",
-    "file_path": zip_path
-}
+    return send_file(file_path, as_attachment=True)
 
 
 # ---------------- LOCAL ONLY ----------------
