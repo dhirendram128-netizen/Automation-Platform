@@ -196,7 +196,11 @@ def download_file(token):
 
     os.remove(token_file)
 
-    return send_file(file_path, as_attachment=True)
+    return {
+    "status": "ready",
+    "file_path": zip_path
+}
+
 
 # ---------------- LOCAL ONLY ----------------
 
