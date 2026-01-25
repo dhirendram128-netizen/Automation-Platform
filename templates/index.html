@@ -34,7 +34,46 @@
         <button type="submit">Convert PDF</button>
     </form>
 </div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<button id="payBtn" disabled>Pay ₹20 to Download</button>
+<script>
+let filePath = "";
 
+function enablePayment(path) {
+    filePath = path;
+    document.getElementById("payBtn").disabled = false;
+}
+
+document.getElementById("payBtn").onclick = async function () {
+
+    const res = await fetch("/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            amount: 49,
+            tool: "invoice",
+            file_path: filePath
+        })
+    });
+
+    const data = await res.json();
+
+    var options = {
+        "key": data.key,
+        "amount": data.amount,
+        "currency": "INR",
+        "name": "Automation Platform",
+        "description": "Invoice Download",
+        "order_id": data.order_id,
+        "handler": function (response) {
+            alert("Payment successful. Download link will open.");
+        }
+    };
+
+    var rzp = new Razorpay(options);
+    rzp.open();
+};
+</script>
 
 
 {% endblock %}
