@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, send_file
 import os
 import zipfile
 from tools.invoice_tool import generate_invoices
+from tools.csv_cleaner import clean_csv
 
 app = Flask(__name__)
 
@@ -34,3 +35,15 @@ def invoice():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
+@app.route("/csv-cleaner", methods=["POST"])
+def csv_cleaner():
+    uploaded_file = request.files["file"]
+
+    upload_path = os.path.join("uploads", uploaded_file.filename)
+    uploaded_file.save(upload_path)
+
+    output_dir = os.path.join("outputs", "csv_cleaner")
+    cleaned_file = clean_csv(upload_path, output_dir)
+
+    return send_file(cleaned_file, as_attachment=True)
