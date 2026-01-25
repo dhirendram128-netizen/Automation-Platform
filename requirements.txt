@@ -2,5 +2,7 @@ flask
 pandas
 jinja2
 pdfkit
+gunicorn
+
 
 
