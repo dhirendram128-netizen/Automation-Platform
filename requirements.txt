@@ -5,6 +5,7 @@ pdfkit
 gunicorn
 pdfplumber
 openpyxl
+razorpay
 
 
 
