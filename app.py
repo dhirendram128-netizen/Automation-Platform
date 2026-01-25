@@ -8,6 +8,13 @@ import uuid
 from tools.invoice_tool import generate_invoices
 from tools.csv_cleaner import clean_csv
 from tools.pdf_to_excel import pdf_to_excel
+from flask import abort
+
+@app.errorhandler(413)
+def file_too_large(e):
+    return "File too large. Max allowed size is 15 MB.", 413
+
+app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
 
 app = Flask(__name__)
 

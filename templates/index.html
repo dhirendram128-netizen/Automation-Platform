@@ -6,103 +6,158 @@
 
 <div class="tools-grid">
 
-    <!-- Invoice Tool -->
+    <!-- INVOICE TOOL -->
     <div class="tool-card">
         <h3>Invoice Automation</h3>
-        <p>Upload Excel/CSV and download all invoices in one ZIP.</p>
+        <p>Upload CSV and generate invoice ZIP.</p>
 
-    <input type="file" id="invoiceFile" required>
-<button type="button" onclick="submitInvoice()">Generate Invoices</button>
+        <input type="file" id="invoiceFile" accept=".csv">
+        <p class="hint">Max file size: 20 MB</p>
 
+        <button onclick="submitInvoice()">Generate</button>
+
+        <!-- LOCK + PAYMENT -->
+        <div id="invoiceLock" style="display:none; margin-top:10px;">
+            🔒 File ready. Pay ₹49 to download<br><br>
+            <button id="invoicePayBtn" disabled>Pay ₹49</button>
+        </div>
     </div>
-    <div class="tool-card">
-    <h3>CSV Cleaner</h3>
-    <p>Clean messy CSV files instantly.</p>
 
-    <form action="/csv-cleaner" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <button type="submit">Clean CSV</button>
-    </form>
-</div>
+    <!-- CSV CLEANER -->
     <div class="tool-card">
-    <h3>PDF to Excel</h3>
-    <p>Extract tables from PDF into Excel file.</p>
+        <h3>CSV Cleaner</h3>
+        <p>Clean messy CSV files instantly.</p>
 
-    <form action="/pdf-to-excel" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".pdf" required>
-        <button type="submit">Convert PDF</button>
-    </form>
+        <input type="file" id="csvFile" accept=".csv">
+        <button onclick="submitCSV()">Clean CSV</button>
+
+        <div id="csvLock" style="display:none; margin-top:10px;">
+            🔒 File ready. Pay ₹49 to download<br><br>
+            <button id="csvPayBtn" disabled>Pay ₹49</button>
+        </div>
+    </div>
+
+    <!-- PDF TO EXCEL -->
+    <div class="tool-card">
+        <h3>PDF to Excel</h3>
+        <p>Extract tables from PDF.</p>
+
+        <input type="file" id="pdfFile" accept=".pdf">
+        <button onclick="submitPDF()">Convert PDF</button>
+
+        <div id="pdfLock" style="display:none; margin-top:10px;">
+            🔒 File ready. Pay ₹49 to download<br><br>
+            <button id="pdfPayBtn" disabled>Pay ₹49</button>
+        </div>
+    </div>
+
 </div>
+
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script>
-let filePath = "";
+let currentFilePath = "";
+let currentTool = "";
+
+/* ---------------- INVOICE ---------------- */
 
 async function submitInvoice() {
-    const fileInput = document.getElementById("invoiceFile");
+    const file = document.getElementById("invoiceFile").files[0];
+    if (!file) return alert("Select CSV file");
 
-    if (!fileInput.files.length) {
-        alert("Please select a CSV file");
-        return;
-    }
+    const fd = new FormData();
+    fd.append("file", file);
 
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-
-    const res = await fetch("/invoice", {
-        method: "POST",
-        body: formData
-    });
-
+    const res = await fetch("/invoice", { method: "POST", body: fd });
     const data = await res.json();
 
     if (data.status === "ready") {
-        enablePayment(data.file_path);
-        alert("File generated. Please pay to download.");
+        currentFilePath = data.file_path;
+        currentTool = "invoice";
+        document.getElementById("invoiceLock").style.display = "block";
+        document.getElementById("invoicePayBtn").disabled = false;
     } else {
-        alert("Error: " + (data.message || "Processing failed"));
+        alert("Invoice generation failed");
     }
 }
-</script>
-<button id="payBtn" disabled>Pay ₹49 to Download</button>
-<script>
-let filePath = "";
 
-function enablePayment(path) {
-    filePath = path;
-    document.getElementById("payBtn").disabled = false;
+/* ---------------- CSV CLEANER ---------------- */
+
+async function submitCSV() {
+    const file = document.getElementById("csvFile").files[0];
+    if (!file) return alert("Select CSV file");
+
+    const fd = new FormData();
+    fd.append("file", file);
+
+    const res = await fetch("/csv-cleaner", { method: "POST", body: fd });
+    const data = await res.json();
+
+    if (data.status === "ready") {
+        currentFilePath = data.file_path;
+        currentTool = "csv";
+        document.getElementById("csvLock").style.display = "block";
+        document.getElementById("csvPayBtn").disabled = false;
+    } else {
+        alert("CSV cleaning failed");
+    }
 }
 
-document.getElementById("payBtn").onclick = async function () {
+/* ---------------- PDF ---------------- */
 
+async function submitPDF() {
+    const file = document.getElementById("pdfFile").files[0];
+    if (!file) return alert("Select PDF file");
+
+    const fd = new FormData();
+    fd.append("file", file);
+
+    const res = await fetch("/pdf-to-excel", { method: "POST", body: fd });
+    const data = await res.json();
+
+    if (data.status === "ready") {
+        currentFilePath = data.file_path;
+        currentTool = "pdf";
+        document.getElementById("pdfLock").style.display = "block";
+        document.getElementById("pdfPayBtn").disabled = false;
+    } else {
+        alert("PDF conversion failed");
+    }
+}
+
+/* ---------------- PAYMENT ---------------- */
+
+async function startPayment() {
     const res = await fetch("/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             amount: 49,
-            tool: "invoice",
-            file_path: filePath
+            tool: currentTool,
+            file_path: currentFilePath
         })
     });
 
-    const data = await res.json();
+    const order = await res.json();
 
-    var options = {
-        "key": data.key,
-        "amount": data.amount,
-        "currency": "INR",
-        "name": "Automation Platform",
-        "description": "Invoice Download",
-        "order_id": data.order_id,
-        "handler": function (response) {
-            alert("Payment successful. Download link will open.");
+    const options = {
+        key: order.key,
+        amount: order.amount,
+        currency: "INR",
+        name: "Automation Platform",
+        description: "File Download",
+        order_id: order.order_id,
+        handler: function () {
+            alert("Payment successful. Download will start.");
         }
     };
 
-    var rzp = new Razorpay(options);
-    rzp.open();
-};
+    new Razorpay(options).open();
+}
+
+document.getElementById("invoicePayBtn").onclick = startPayment;
+document.getElementById("csvPayBtn").onclick = startPayment;
+document.getElementById("pdfPayBtn").onclick = startPayment;
 </script>
 
-
 {% endblock %}
-
