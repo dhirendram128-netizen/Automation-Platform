@@ -1,0 +1,6 @@
+Invoice_No,Invoice_Date,Customer_Name,Customer_Address,Service_Name,Quantity,Rate,GST_Percent
+1001,2024-01-01,Rahul Sharma,Delhi,Website Work,1,5000,18
+1002,2024-01-02,Amit Verma,Mumbai,Automation Script,2,3000,18
+1003,2025-01-03,Sumit Saxena,Delhi,Quanity Rate,4,2000,20
+
+

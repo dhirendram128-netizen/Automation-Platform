@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title if title else "Automation Platform" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+    <h1>Automation Platform</h1>
+    <p>Solve boring work in seconds</p>
+</header>
+
+<!-- MAIN CONTENT -->
+<div class="container">
+    {% block content %}{% endblock %}
+</div>
+
+<!-- WHATSAPP SUPPORT -->
+<a href="https://wa.me/918573821917" class="whatsapp" target="_blank">
+    WhatsApp Help
+</a>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <p>Need help or want to automate something else?</p>
+    <p>WhatsApp us: <strong>8573821917</strong></p>
+</footer>
+
+</body>
+</html>
