@@ -1,221 +1,177 @@
-from flask import Flask, render_template, request, send_file, jsonify
-import os
-import zipfile
-import pandas as pd
-import razorpay
-import uuid
+from flask import Flask, render_template, request, send_file, jsonify, abort
+import os, zipfile, pandas as pd, razorpay, uuid, json
 
 from tools.invoice_tool import generate_invoices
 from tools.csv_cleaner import clean_csv
 from tools.pdf_to_excel import pdf_to_excel
-from flask import abort
-
-@app.errorhandler(413)
-def file_too_large(e):
-    return "File too large. Max allowed size is 15 MB.", 413
-
-app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
 
 UPLOAD_FOLDER = "uploads"
 OUTPUT_FOLDER = "outputs"
+JOB_DB = "jobs.json"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-# ---------------- RAZORPAY CLIENT ----------------
+# ---------------- JOB STORE ----------------
+
+def load_jobs():
+    if not os.path.exists(JOB_DB):
+        return {}
+    with open(JOB_DB) as f:
+        return json.load(f)
+
+def save_jobs(data):
+    with open(JOB_DB, "w") as f:
+        json.dump(data, f, indent=2)
+
+# ---------------- RAZORPAY ----------------
 
 razorpay_client = razorpay.Client(
-    auth=(
-        os.getenv("RAZORPAY_KEY_ID"),
-        os.getenv("RAZORPAY_KEY_SECRET")
-    )
+    auth=(os.getenv("RAZORPAY_KEY_ID"), os.getenv("RAZORPAY_KEY_SECRET"))
 )
 
 # ---------------- HOME ----------------
 
 @app.route("/")
 def home():
-    return render_template("index.html", title="Automation Platform")
+    return render_template("index.html")
 
-# ---------------- INVOICE TOOL ----------------
+# ---------------- INVOICE ----------------
 
 @app.route("/invoice", methods=["POST"])
 def invoice():
     uploaded_file = request.files.get("file")
-
-    if not uploaded_file:
-        return "No file uploaded", 400
-
-    filename = uploaded_file.filename.lower()
-
-    if not filename.endswith(".csv"):
-        return "Wrong file type. Please upload a CSV file only.", 400
+    if not uploaded_file or not uploaded_file.filename.endswith(".csv"):
+        return "Invalid CSV", 400
 
     csv_path = os.path.join(UPLOAD_FOLDER, uploaded_file.filename)
     uploaded_file.save(csv_path)
 
-    try:
-        pd.read_csv(csv_path)
-    except Exception:
-        return "Invalid CSV file. Please upload a valid CSV.", 400
+    invoice_output = os.path.join(OUTPUT_FOLDER, "invoices")
+    pdf_files = generate_invoices(csv_path, invoice_output)
 
-    try:
-        invoice_output = os.path.join(OUTPUT_FOLDER, "invoices")
-        pdf_files = generate_invoices(csv_path, invoice_output)
+    zip_path = os.path.join(OUTPUT_FOLDER, "invoices.zip")
+    with zipfile.ZipFile(zip_path, "w") as zipf:
+        for pdf in pdf_files:
+            zipf.write(pdf, os.path.basename(pdf))
 
-        zip_path = os.path.join(OUTPUT_FOLDER, "invoices.zip")
-        with zipfile.ZipFile(zip_path, "w") as zipf:
-            for pdf in pdf_files:
-                zipf.write(pdf, os.path.basename(pdf))
+    job_id = str(uuid.uuid4())
+    jobs = load_jobs()
+    jobs[job_id] = {"file": zip_path, "paid": False}
+    save_jobs(jobs)
 
-        return jsonify({
-    "status": "ready",
-    "file_path": zip_path
-})
-
-    except Exception as e:
-        return f"Invoice generation failed: {str(e)}", 500
+    return jsonify({"status": "ready", "job_id": job_id})
 
 # ---------------- CSV CLEANER ----------------
 
 @app.route("/csv-cleaner", methods=["POST"])
 def csv_cleaner_route():
     uploaded_file = request.files.get("file")
-
-    if not uploaded_file:
-        return "No file uploaded", 400
-
-    filename = uploaded_file.filename.lower()
-
-    if not filename.endswith(".csv"):
-        return "Wrong file type. Please upload a CSV file only.", 400
+    if not uploaded_file or not uploaded_file.filename.endswith(".csv"):
+        return "Invalid CSV", 400
 
     upload_path = os.path.join(UPLOAD_FOLDER, uploaded_file.filename)
     uploaded_file.save(upload_path)
 
-    try:
-        cleaned_file = clean_csv(upload_path, os.path.join(OUTPUT_FOLDER, "csv_cleaner"))
-        return jsonify({
-    "status": "ready",
-    "file_path": cleaned_file
-})
-    except Exception as e:
-        return f"CSV cleaning failed: {str(e)}", 400
+    cleaned_file = clean_csv(upload_path, os.path.join(OUTPUT_FOLDER, "csv_cleaner"))
 
-# ---------------- PDF TO EXCEL ----------------
+    job_id = str(uuid.uuid4())
+    jobs = load_jobs()
+    jobs[job_id] = {"file": cleaned_file, "paid": False}
+    save_jobs(jobs)
+
+    return jsonify({"status": "ready", "job_id": job_id})
+
+# ---------------- PDF ----------------
 
 @app.route("/pdf-to-excel", methods=["POST"])
 def pdf_to_excel_route():
     uploaded_file = request.files.get("file")
-
-    if not uploaded_file:
-        return "No file uploaded", 400
-
-    filename = uploaded_file.filename.lower()
-
-    if not filename.endswith(".pdf"):
-        return "Wrong file type. Please upload a PDF file only.", 400
+    if not uploaded_file or not uploaded_file.filename.endswith(".pdf"):
+        return "Invalid PDF", 400
 
     pdf_path = os.path.join(UPLOAD_FOLDER, uploaded_file.filename)
     uploaded_file.save(pdf_path)
 
-    try:
-        excel_file = pdf_to_excel(pdf_path, os.path.join(OUTPUT_FOLDER, "pdf_to_excel"))
-        return jsonify({
-    "status": "ready",
-    "file_path": excel_file
-})
-    except Exception:
-        return "This PDF does not contain extractable tables.", 400
+    excel_file = pdf_to_excel(pdf_path, os.path.join(OUTPUT_FOLDER, "pdf_to_excel"))
 
-# ---------------- PAYMENT ORDER ----------------
+    job_id = str(uuid.uuid4())
+    jobs = load_jobs()
+    jobs[job_id] = {"file": excel_file, "paid": False}
+    save_jobs(jobs)
+
+    return jsonify({"status": "ready", "job_id": job_id})
+
+# ---------------- CREATE ORDER ----------------
 
 @app.route("/create-order", methods=["POST"])
 def create_order():
     data = request.json
+    job_id = data.get("job_id")
 
-    amount = int(data.get("amount")) * 100
-    tool = data.get("tool")
-    file_path = data.get("file_path")
+    jobs = load_jobs()
+    if job_id not in jobs:
+        abort(400)
 
     order = razorpay_client.order.create({
-        "amount": amount,
+        "amount": 49 * 100,
         "currency": "INR",
         "payment_capture": 1,
-        "notes": {
-            "tool": tool,
-            "file_path": file_path
-        }
+        "notes": {"job_id": job_id}
     })
 
     return jsonify({
         "order_id": order["id"],
-        "amount": amount,
+        "amount": 49 * 100,
         "key": os.getenv("RAZORPAY_KEY_ID")
     })
 
-# ---------------- DOWNLOAD TOKEN ----------------
-
-def generate_download_token(file_path):
-    token = str(uuid.uuid4())
-    token_path = os.path.join(OUTPUT_FOLDER, f"{token}.txt")
-
-    with open(token_path, "w") as f:
-        f.write(file_path)
-
-    return token
-
-# ---------------- RAZORPAY WEBHOOK ----------------
+# ---------------- WEBHOOK ----------------
 
 @app.route("/razorpay-webhook", methods=["POST"])
 def razorpay_webhook():
     payload = request.data
-    signature = request.headers.get("X-Razorpay-Signature")
+    sig = request.headers.get("X-Razorpay-Signature")
 
-    secret = os.getenv("RAZORPAY_KEY_SECRET")
-
-    try:
-        razorpay_client.utility.verify_webhook_signature(
-            payload, signature, secret
-        )
-    except Exception as e:
-        return f"Invalid signature: {str(e)}", 400
+    razorpay_client.utility.verify_webhook_signature(
+        payload, sig, os.getenv("RAZORPAY_KEY_SECRET")
+    )
 
     event = request.json
-
     if event.get("event") == "payment.captured":
-        payment = event["payload"]["payment"]["entity"]
-        file_path = payment["notes"].get("file_path")
-
-        if not file_path:
-            return "File path missing", 400
-
-        token = generate_download_token(file_path)
-
-        return jsonify({"download_token": token})
+        job_id = event["payload"]["payment"]["entity"]["notes"].get("job_id")
+        jobs = load_jobs()
+        if job_id in jobs:
+            jobs[job_id]["paid"] = True
+            save_jobs(jobs)
 
     return "ok"
 
-# ---------------- SECURE DOWNLOAD ----------------
+# ---------------- DOWNLOAD ----------------
 
-@app.route("/download/<token>")
-def download_file(token):
-    token_file = os.path.join(OUTPUT_FOLDER, f"{token}.txt")
+@app.route("/download/<job_id>")
+def download_file(job_id):
+    jobs = load_jobs()
+    if job_id not in jobs or not jobs[job_id]["paid"]:
+        return "Payment required", 403
 
-    if not os.path.exists(token_file):
-        return "Invalid or expired link", 403
+    return send_file(jobs[job_id]["file"], as_attachment=True)
+@app.route("/check-status/<job_id>")
+def check_status(job_id):
+    jobs = load_jobs()
 
-    with open(token_file) as f:
-        file_path = f.read()
+    if job_id not in jobs:
+        return jsonify({"status": "not_found"})
 
-    os.remove(token_file)  # one-time download
+    if jobs[job_id]["paid"]:
+        return jsonify({"status": "paid"})
+    else:
+        return jsonify({"status": "pending"})
 
-    return send_file(file_path, as_attachment=True)
-
-
-# ---------------- LOCAL ONLY ----------------
+# ---------------- RUN ----------------
 
 if __name__ == "__main__":
     app.run(debug=True)

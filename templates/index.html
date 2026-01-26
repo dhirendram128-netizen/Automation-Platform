@@ -14,12 +14,20 @@
         <input type="file" id="invoiceFile" accept=".csv">
         <p class="hint">Max file size: 20 MB</p>
 
-        <button onclick="submitInvoice()">Generate</button>
+        <button type="button" onclick="submitInvoice()">Generate</button>
 
         <!-- LOCK + PAYMENT -->
         <div id="invoiceLock" style="display:none; margin-top:10px;">
             🔒 File ready. Pay ₹49 to download<br><br>
-            <button id="invoicePayBtn" disabled>Pay ₹49</button>
+
+            <button type="button" id="invoicePayBtn" disabled>Pay ₹49</button>
+
+            <!-- DOWNLOAD (hidden initially) -->
+            <button type="button"
+                    id="invoiceDownloadBtn"
+                    style="display:none; margin-top:8px;">
+                Download File
+            </button>
         </div>
     </div>
 
@@ -29,11 +37,11 @@
         <p>Clean messy CSV files instantly.</p>
 
         <input type="file" id="csvFile" accept=".csv">
-        <button onclick="submitCSV()">Clean CSV</button>
+        <button type="button" onclick="submitCSV()">Clean CSV</button>
 
         <div id="csvLock" style="display:none; margin-top:10px;">
             🔒 File ready. Pay ₹49 to download<br><br>
-            <button id="csvPayBtn" disabled>Pay ₹49</button>
+            <button type="button" id="csvPayBtn" disabled>Pay ₹49</button>
         </div>
     </div>
 
@@ -43,11 +51,11 @@
         <p>Extract tables from PDF.</p>
 
         <input type="file" id="pdfFile" accept=".pdf">
-        <button onclick="submitPDF()">Convert PDF</button>
+        <button type="button" onclick="submitPDF()">Convert PDF</button>
 
         <div id="pdfLock" style="display:none; margin-top:10px;">
             🔒 File ready. Pay ₹49 to download<br><br>
-            <button id="pdfPayBtn" disabled>Pay ₹49</button>
+            <button type="button" id="pdfPayBtn" disabled>Pay ₹49</button>
         </div>
     </div>
 
@@ -56,8 +64,7 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-let currentFilePath = "";
-let currentTool = "";
+let currentJobId = "";
 
 /* ---------------- INVOICE ---------------- */
 
@@ -72,8 +79,7 @@ async function submitInvoice() {
     const data = await res.json();
 
     if (data.status === "ready") {
-        currentFilePath = data.file_path;
-        currentTool = "invoice";
+        currentJobId = data.job_id;
         document.getElementById("invoiceLock").style.display = "block";
         document.getElementById("invoicePayBtn").disabled = false;
     } else {
@@ -94,8 +100,6 @@ async function submitCSV() {
     const data = await res.json();
 
     if (data.status === "ready") {
-        currentFilePath = data.file_path;
-        currentTool = "csv";
         document.getElementById("csvLock").style.display = "block";
         document.getElementById("csvPayBtn").disabled = false;
     } else {
@@ -116,8 +120,6 @@ async function submitPDF() {
     const data = await res.json();
 
     if (data.status === "ready") {
-        currentFilePath = data.file_path;
-        currentTool = "pdf";
         document.getElementById("pdfLock").style.display = "block";
         document.getElementById("pdfPayBtn").disabled = false;
     } else {
@@ -131,11 +133,7 @@ async function startPayment() {
     const res = await fetch("/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            amount: 49,
-            tool: currentTool,
-            file_path: currentFilePath
-        })
+        body: JSON.stringify({ job_id: currentJobId })
     });
 
     const order = await res.json();
@@ -145,14 +143,35 @@ async function startPayment() {
         amount: order.amount,
         currency: "INR",
         name: "Automation Platform",
-        description: "File Download",
+        description: "File Unlock",
         order_id: order.order_id,
         handler: function () {
-            alert("Payment successful. Download will start.");
+            startPolling(currentJobId);
         }
     };
 
     new Razorpay(options).open();
+}
+
+/* ---------------- POLLING ---------------- */
+
+function startPolling(jobId) {
+    const interval = setInterval(async () => {
+        const res = await fetch(`/check-status/${jobId}`);
+        const data = await res.json();
+
+        if (data.status === "paid") {
+            clearInterval(interval);
+
+            document.getElementById("invoicePayBtn").style.display = "none";
+
+            const btn = document.getElementById("invoiceDownloadBtn");
+            btn.style.display = "block";
+            btn.onclick = () => {
+                window.location.href = `/download/${jobId}`;
+            };
+        }
+    }, 2000);
 }
 
 document.getElementById("invoicePayBtn").onclick = startPayment;
