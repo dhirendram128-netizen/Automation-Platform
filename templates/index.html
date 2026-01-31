@@ -1,182 +1,1428 @@
 {% extends "base.html" %}
 
 {% block content %}
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;800&display=swap"
+    rel="stylesheet">
 
-<h2 class="section-title">Available Automation Tools</h2>
+<style>
+    :root {
+        --cyan: #00f2ff;
+        --purple: #bf00ff;
+        --green: #39ff14;
+        --pink: #ff00e6;
+        --blue: #0084ff;
+        --orange: #ff9d00;
+        --bg: #020617;
+        --surface: rgba(15, 23, 42, 0.4);
+        --text: #ffffff;
+        --text-dim: #94a3b8;
+        --border: rgba(255, 255, 255, 0.1);
+        --input-bg: rgba(0, 0, 0, 0.3);
+    }
 
-<div class="tools-grid">
+    body.light-theme {
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text: #0f172a;
+        --text-dim: #64748b;
+        --border: rgba(0, 0, 0, 0.1);
+        --input-bg: #f1f5f9;
 
-    <!-- INVOICE TOOL -->
-    <div class="tool-card">
-        <h3>Invoice Automation</h3>
-        <p>Upload CSV and generate invoice ZIP.</p>
+        background: radial-gradient(circle at top, #f1f5f9, #f8fafc 80%) !important;
+        background-color: #f8fafc !important;
+        color: var(--text) !important;
+    }
 
-        <input type="file" id="invoiceFile" accept=".csv">
-        <p class="hint">Max file size: 20 MB</p>
+    body {
+        background: radial-gradient(circle at top, #0f172a, #020617 80%) !important;
+        background-color: #020617 !important;
+        color: var(--text) !important;
+        font-family: 'Inter', sans-serif !important;
+        margin: 0;
+        min-height: 100vh;
+        transition: background-color 0.3s, color 0.3s;
+    }
 
-        <button type="button" onclick="submitInvoice()">Generate</button>
+    .header,
+    .footer,
+    .whatsapp,
+    .main-wrapper>p,
+    [style*="text-align:center; font-size:13px"] {
+        display: none !important;
+    }
 
-        <!-- LOCK + PAYMENT -->
-        <div id="invoiceLock" style="display:none; margin-top:10px;">
-            🔒 File ready. Pay ₹49 to download<br><br>
+    .main-wrapper {
+        max-width: 1100px !important;
+        margin: 0 auto !important;
+        padding: 50px 20px !important;
+    }
 
-            <button type="button" id="invoicePayBtn" disabled>Pay ₹49</button>
+    /* Hero */
+    .hero-clone {
+        text-align: center;
+        margin-bottom: 30px;
+    }
 
-            <!-- DOWNLOAD (hidden initially) -->
-            <button type="button"
-                    id="invoiceDownloadBtn"
-                    style="display:none; margin-top:8px;">
-                Download File
-            </button>
-        </div>
-    </div>
+    .hero-clone h1 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: clamp(2.5rem, 6vw, 3.8rem);
+        font-weight: 800;
+        letter-spacing: 5px;
+        margin: 0 0 8px;
+        background: linear-gradient(to right, var(--cyan), #fff, var(--pink));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-    <!-- CSV CLEANER -->
-    <div class="tool-card">
-        <h3>CSV Cleaner</h3>
-        <p>Clean messy CSV files instantly.</p>
+    .hero-clone p {
+        color: var(--green);
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
 
-        <input type="file" id="csvFile" accept=".csv">
-        <button type="button" onclick="submitCSV()">Clean CSV</button>
+    /* Notice */
+    .notice-clone {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.6);
+        padding: 8px 20px;
+        border-radius: 8px;
+        width: fit-content;
+        margin: 0 auto 50px;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-        <div id="csvLock" style="display:none; margin-top:10px;">
-            🔒 File ready. Pay ₹49 to download<br><br>
-            <button type="button" id="csvPayBtn" disabled>Pay ₹49</button>
-        </div>
-    </div>
+    /* Top Grid */
+    .top-grid-clone {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 24px;
+        margin-bottom: 50px;
+    }
 
-    <!-- PDF TO EXCEL -->
-    <div class="tool-card">
-        <h3>PDF to Excel</h3>
-        <p>Extract tables from PDF.</p>
+    .panel-clone {
+        background: rgba(15, 23, 42, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 28px;
+        backdrop-filter: blur(15px);
+    }
 
-        <input type="file" id="pdfFile" accept=".pdf">
-        <button type="button" onclick="submitPDF()">Convert PDF</button>
+    .usage-panel-clone {
+        border: 1.5px solid transparent;
+        border-radius: 16px;
+        background: linear-gradient(#0f172a, #0f172a) padding-box,
+            linear-gradient(135deg, var(--cyan), var(--purple)) border-box;
+    }
 
-        <div id="pdfLock" style="display:none; margin-top:10px;">
-            🔒 File ready. Pay ₹49 to download<br><br>
-            <button type="button" id="pdfPayBtn" disabled>Pay ₹49</button>
-        </div>
-    </div>
+    .check-clone {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 15px;
+        color: #cbd5e1;
+        font-size: 0.9rem;
+    }
 
+    .check-clone svg {
+        color: #3b82f6;
+    }
+
+    /* Grid */
+    .grid-clone {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+
+    .card-clone {
+        background: var(--surface);
+        border: 1px solid transparent;
+        border-radius: 20px;
+        padding: 40px 24px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.3s;
+        color: var(--text);
+    }
+
+    .panel-clone {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px;
+        backdrop-filter: blur(15px);
+        color: var(--text);
+    }
+
+    .input-bar-clone {
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .file-name-clone {
+        flex: 1;
+        padding-left: 10px;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        text-align: left;
+    }
+
+    .card-clone p.desc {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        margin-bottom: 24px;
+        min-height: 34px;
+    }
+
+    .usage-panel-clone {
+        border: 1.5px solid transparent;
+        border-radius: 16px;
+        background: linear-gradient(var(--bg), var(--bg)) padding-box,
+            linear-gradient(135deg, var(--cyan), var(--purple)) border-box;
+    }
+
+    /* Mode Switcher */
+    .mode-switch {
+        display: flex;
+        background: var(--input-bg);
+        border-radius: 8px;
+        padding: 4px;
+        margin-bottom: 20px;
+        width: 100%;
+        gap: 4px;
+    }
+
+    .mode-btn {
+        flex: 1;
+        padding: 6px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--text-dim);
+        transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+        background: var(--pink);
+        color: #fff;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 100;
+        transition: all 0.3s;
+    }
+
+    .theme-toggle:hover {
+        border-color: var(--cyan);
+        box-shadow: 0 0 10px var(--cyan);
+    }
+
+    .card-clone:hover {
+        transform: translateY(-3px);
+        /* Changed */
+    }
+
+    .icon-clone {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 20px;
+    }
+
+    .icon-clone svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 0 10px currentColor);
+    }
+
+    .card-clone h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .card-clone p.desc {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-bottom: 24px;
+        min-height: 34px;
+    }
+
+    /* Upload UI Cloned */
+    .upload-wrap-clone {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .input-bar-clone {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .browse-btn-clone {
+        background: #e2e8f0;
+        color: #0f172a;
+        padding: 3px 12px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        pointer-events: none;
+    }
+
+    .file-name-clone {
+        flex: 1;
+        padding-left: 10px;
+        font-size: 0.75rem;
+        color: #64748b;
+        text-align: left;
+    }
+
+    .input-bar-clone input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .hint-clone {
+        font-size: 0.75rem;
+        color: #475569;
+        margin-top: 10px;
+    }
+
+    /* Buttons */
+    .btn-clone {
+        width: 100%;
+        padding: 12px;
+        border-radius: 999px;
+        border: none;
+        font-weight: 800;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-clone:hover:not(:disabled) {
+        filter: brightness(1.1);
+    }
+
+    .btn-cyan-cl {
+        background: #00f2ff;
+        color: #020617;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+    }
+
+    .btn-green-cl {
+        background: #39ff14;
+        color: #020617;
+        box-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
+    }
+
+    .btn-purple-cl {
+        background: #bf00ff;
+        color: #fff;
+        box-shadow: 0 0 15px rgba(191, 0, 255, 0.4);
+    }
+
+    /* Unified Neon Borders & Shadows */
+    .t-cyan {
+        border-color: rgba(0, 242, 255, 0.4);
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+    }
+
+    .t-green {
+        border-color: rgba(57, 255, 20, 0.4);
+        box-shadow: 0 0 15px rgba(57, 255, 20, 0.1);
+    }
+
+    .t-purple {
+        border-color: rgba(191, 0, 255, 0.4);
+        box-shadow: 0 0 15px rgba(191, 0, 255, 0.1);
+    }
+
+    .t-pink {
+        border-color: rgba(255, 0, 230, 0.4);
+        box-shadow: 0 0 15px rgba(255, 0, 230, 0.1);
+    }
+
+    .t-blue {
+        border-color: rgba(0, 132, 255, 0.4);
+        box-shadow: 0 0 15px rgba(0, 132, 255, 0.1);
+    }
+
+    .t-orange {
+        border-color: rgba(255, 157, 0, 0.4);
+        box-shadow: 0 0 15px rgba(255, 157, 0, 0.1);
+    }
+
+    .card-clone:hover.t-cyan {
+        border-color: var(--cyan);
+        box-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+    }
+
+    .card-clone:hover.t-green {
+        border-color: var(--green);
+        box-shadow: 0 0 30px rgba(57, 255, 20, 0.3);
+    }
+
+    .card-clone:hover.t-purple {
+        border-color: var(--purple);
+        box-shadow: 0 0 30px rgba(191, 0, 255, 0.3);
+    }
+
+    .card-clone:hover.t-pink {
+        border-color: var(--pink);
+        box-shadow: 0 0 30px rgba(255, 0, 230, 0.3);
+    }
+
+    .card-clone:hover.t-blue {
+        border-color: var(--blue);
+        box-shadow: 0 0 30px rgba(0, 132, 255, 0.3);
+    }
+
+    .card-clone:hover.t-orange {
+        border-color: var(--orange);
+        box-shadow: 0 0 30px rgba(255, 157, 0, 0.3);
+    }
+
+    .btn-pink-cl {
+        background: #ff00e6;
+        color: #fff;
+        box-shadow: 0 0 15px rgba(255, 0, 230, 0.4);
+    }
+
+    .btn-blue-cl {
+        background: #0084ff;
+        color: #fff;
+        box-shadow: 0 0 15px rgba(0, 132, 255, 0.4);
+    }
+
+    .btn-orange-cl {
+        background: #ff9d00;
+        color: #020617;
+        box-shadow: 0 0 15px rgba(255, 157, 0, 0.4);
+    }
+
+    .btn-off-cl {
+        opacity: 1;
+        cursor: not-allowed;
+    }
+
+    /* Excel Formula Tool */
+    .textarea-clone {
+        width: 100%;
+        min-height: 80px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.85rem;
+        margin-bottom: 15px;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+
+    .textarea-clone:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 10px rgba(0, 132, 255, 0.2);
+    }
+
+    .output-container-clone {
+        width: 100%;
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        text-align: left;
+    }
+
+    .formula-box-clone {
+        background: #000;
+        padding: 10px;
+        border-radius: 6px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        color: var(--cyan);
+        margin-bottom: 10px;
+        word-break: break-all;
+        position: relative;
+    }
+
+    .explanation-text-clone {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        line-height: 1.4;
+    }
+
+    .copy-btn-wrap {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+
+    .copy-btn-small {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .copy-btn-small:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+    }
+
+    /* Footer */
+    .footer-clone {
+        margin-top: 100px;
+        padding: 40px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    .f-links-clone {
+        display: flex;
+        gap: 24px;
+    }
+
+    .f-links-clone a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .support-clone {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: #39ff14;
+        text-decoration: none;
+    }
+
+    .support-icon-cl {
+        width: 52px;
+        height: 52px;
+        border: 1px solid #39ff14;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #020617;
+        box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+    }
+
+    @media (max-width: 900px) {
+        .grid-clone {
+            grid-template-columns: 1fr;
+        }
+
+        .top-grid-clone {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Premium Section */
+    .premium-header {
+        text-align: center;
+        margin: 80px 0 40px;
+        font-family: 'Orbitron';
+        font-weight: 800;
+        background: linear-gradient(to right, #ffd700, #ffae00);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+
+    .premium-blur {
+        filter: blur(3px);
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .lock-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 10px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    body.light-theme .side-panel {
+        background: rgba(255, 255, 255, 0.95);
+        border-right: 1px solid var(--border);
+    }
+
+    body.light-theme .side-panel .panel-item:hover {
+        background: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    /* Side Panel */
+    .hamburger-menu {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 200;
+        cursor: pointer;
+        color: var(--text);
+        padding: 10px;
+        border-radius: 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        transition: all 0.3s;
+    }
+
+    .hamburger-menu:hover {
+        border-color: var(--cyan);
+        box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+    }
+
+    .side-panel {
+        position: fixed;
+        top: 0;
+        left: -300px;
+        width: 280px;
+        height: 100vh;
+        background: rgba(2, 6, 23, 0.95);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid var(--border);
+        z-index: 1000;
+        transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        padding: 80px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .side-panel.open {
+        left: 0;
+    }
+
+    .panel-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 900;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+
+    .side-panel.open~.panel-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .panel-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 12px;
+        color: var(--text-dim);
+        font-weight: 500;
+        font-size: 0.9rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid transparent;
+        transition: all 0.2s;
+        cursor: default;
+    }
+
+    .panel-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: var(--text);
+    }
+
+    .panel-item svg {
+        width: 20px;
+        height: 20px;
+        opacity: 0.7;
+    }
+
+    .tag-soon {
+        margin-left: auto;
+        font-size: 0.65rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 2px 8px;
+        border-radius: 99px;
+        color: var(--cyan);
+        border: 1px solid rgba(0, 242, 255, 0.2);
+    }
+</style>
+
+
+
+
+<!-- Hamburger -->
+<div class="hamburger-menu" onclick="togglePanel()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
 </div>
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<!-- Side Panel -->
+<div class="side-panel" id="sidePanel">
+    <div
+        style="font-family: 'Orbitron'; font-size: 1.2rem; font-weight:800; color:var(--text); margin-bottom: 20px; padding-left: 10px;">
+        MENU
+    </div>
+    <div class="panel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+        </svg>
+        API Access
+        <span class="tag-soon">Coming Soon</span>
+    </div>
+    <div class="panel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        Bulk Upload
+        <span class="tag-soon">Coming Soon</span>
+    </div>
+    <div class="panel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <polyline points="17 11 19 13 23 9"></polyline>
+        </svg>
+        Referral Program
+        <span class="tag-soon">Coming Soon</span>
+    </div>
+    <div class="panel-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Cloud Import
+        <span class="tag-soon">Coming Soon</span>
+    </div>
+</div>
+<div class="panel-overlay" onclick="togglePanel()"></div>
+
+<!-- Theme Toggle -->
+<div class="theme-toggle" id="themeIcon" onclick="toggleTheme()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+</div>
+
+<div class="hero-clone">
+    <h1>AUTOMATION PLATFORM</h1>
+    <p>Solve boring work in seconds</p>
+</div>
+
+<div class="top-grid-clone">
+    <div class="panel-clone" style="display: flex; flex-direction: column; justify-content: center;gap: 10px;">
+        <h3 style="font-family: 'Orbitron'; font-size: 1.1rem; margin: 0; color: var(--text);">Free Tier</h3>
+        <p style="margin: 0; font-size: 0.8rem; color: var(--text-dim);">Instant tools. Zero signup. Secure processing.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 5px;">
+            <div class="check-clone" style="margin:0; font-size:0.8rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg> Process up to 2 files daily
+            </div>
+            <div class="check-clone" style="margin:0; font-size:0.8rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg> Fast conversions with auto-delete
+            </div>
+            <div class="check-clone" style="margin:0; font-size:0.8rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg> Designed for quick, one-time tasks
+            </div>
+        </div>
+    </div>
+    <div class="panel-clone usage-panel-clone">
+        <h3 style="color: #60a5fa; margin: 0 0 12px; font-size: 1.1rem; font-family: 'Orbitron';">Usage Status</h3>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin:0;">Free Tier active. Daily reset at Midnight UTC.</p>
+        <div style="margin-top:24px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px;">
+                <span style="font-weight: 500;">Daily Usage</span>
+                <span>0 / 2 Files</span>
+            </div>
+            <div style="width:100%; height:8px; background: rgba(0,0,0,0.4); border-radius: 4px; overflow:hidden;">
+                <div
+                    style="width:0%; height:100%; background: #0084ff; border-radius: 4px; box-shadow: 0 0 10px #0084ff;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-clone">
+    <!-- Invoice -->
+    <div class="card-clone t-cyan">
+        <div class="icon-clone" style="color: var(--cyan);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <circle cx="12" cy="15" r="3" />
+                <path d="M12 13v4M10 15h4" />
+            </svg></div>
+        <h3>Invoice Automation</h3>
+        <p class="desc">Upload CSV and generate invoice</p>
+        <div class="upload-wrap-clone">
+            <div class="input-bar-clone">
+                <span class="browse-btn-clone">Browse...</span>
+                <span class="file-name-clone" id="invoiceFileName">Select file</span>
+                <input type="file" id="invoiceFile" accept=".csv" onchange="upFN('invoice')">
+            </div>
+        </div>
+        <button class="btn-clone btn-cyan-cl" onclick="subInv(event)">Generate</button>
+        <button id="invoiceDownloadBtn" class="btn-clone btn-green-cl"
+            style="display:none; margin-top:12px;">Download</button>
+    </div>
+
+    <!-- CSV -->
+    <div class="card-clone t-green">
+        <div class="icon-clone" style="color: var(--green);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <path d="M12 12l3 3m0-3l-3 3" />
+                <circle cx="12" cy="15" r="4" />
+            </svg></div>
+        <h3>CSV Cleaner</h3>
+        <p class="desc">Clean messy files instantly</p>
+        <div class="upload-wrap-clone">
+            <div class="input-bar-clone">
+                <span class="browse-btn-clone">Browse...</span>
+                <span class="file-name-clone" id="csvFileName">Select file</span>
+                <input type="file" id="csvFile" accept=".csv" onchange="upFN('csv')">
+            </div>
+        </div>
+        <button class="btn-clone btn-green-cl" onclick="subCSV(event)">Clean CSV</button>
+        <button id="csvDownloadBtn" class="btn-clone btn-green-cl"
+            style="display:none; margin-top:12px;">Download</button>
+    </div>
+
+    <!-- PDF -->
+    <div class="card-clone t-purple">
+        <div class="icon-clone" style="color: var(--purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <path d="M8 13h8v6H8z" />
+                <path d="M12 13v6M8 16h8" />
+            </svg></div>
+        <h3>PDF to Excel</h3>
+        <p class="desc">Extract tables from PDF</p>
+        <div class="upload-wrap-clone">
+            <div class="input-bar-clone">
+                <span class="browse-btn-clone">Browse...</span>
+                <span class="file-name-clone" id="pdfFileName">Select file</span>
+                <input type="file" id="pdfFile" accept=".pdf" onchange="upFN('pdf')">
+            </div>
+        </div>
+        <button class="btn-clone btn-purple-cl" onclick="subPDF(event)">Convert PDF</button>
+        <button id="pdfDownloadBtn" class="btn-clone btn-green-cl"
+            style="display:none; margin-top:12px;">Download</button>
+    </div>
+
+    <!-- PDF Merge / Split -->
+    <div class="card-clone t-pink" id="pdfMergeSplitCard">
+        <div class="icon-clone" style="color: var(--pink);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8">
+                <path d="M7 2h10l4 4v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6l4-4z" />
+                <path d="M12 11v6m-3-3l3 3 3-3" />
+            </svg></div>
+        <h3>PDF Merge / Split</h3>
+        <p class="desc" id="pdfToolDesc">Combine multiple documents</p>
+
+        <div class="mode-switch">
+            <button class="mode-btn active" onclick="setMode('merge')" id="mergeModeBtn">Merge</button>
+            <button class="mode-btn" onclick="setMode('split')" id="splitModeBtn">Split</button>
+        </div>
+
+        <div class="upload-wrap-clone">
+            <div class="input-bar-clone">
+                <span class="browse-btn-clone">Browse...</span>
+                <span class="file-name-clone" id="pdfMergeFileName">Select files</span>
+                <input type="file" id="pdfMergeFile" accept=".pdf" multiple onchange="upFNMultiple('pdfMerge')">
+            </div>
+            <div id="pdfError" style="color: #ff4444; font-size: 0.7rem; margin-top: 5px; display: none;"></div>
+        </div>
+
+        <button class="btn-clone btn-pink-cl" id="pdfActionBtn" onclick="subPDFTool(event)">Merge PDFs</button>
+        <button id="pdfMergeDownloadBtn" class="btn-clone btn-green-cl"
+            style="display:none; margin-top:12px;">Download</button>
+    </div>
+
+    <div class="card-clone t-blue" id="excelFormulaCard">
+        <div class="icon-clone" style="color: var(--blue);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M7 12h10M7 8h10M7 16h10" />
+            </svg></div>
+        <h3>Excel Formula Automation</h3>
+        <p class="desc">AI generated formulas (fx)</p>
+
+        <textarea id="excelPrompt" class="textarea-clone"
+            placeholder="Describe the Excel formula you need..."></textarea>
+
+        <button class="btn-clone btn-blue-cl" id="excelGenBtn" onclick="subExcelFormula(event)">Generate
+            Formula</button>
+
+        <div id="excelOutputContainer" class="output-container-clone" style="display: none;">
+            <div id="excelFormulaResult" class="formula-box-clone"></div>
+            <div id="excelExplanationResult" class="explanation-text-clone"></div>
+            <div class="copy-btn-wrap">
+                <button class="copy-btn-small" onclick="copyFormula()">Copy Formula</button>
+            </div>
+        </div>
+        <div id="excelError" style="color: #ff4444; font-size: 0.7rem; margin-top: 10px; display: none;"></div>
+    </div>
+
+    <div class="card-clone t-orange">
+        <div class="icon-clone" style="color: var(--orange);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <circle cx="12" cy="14" r="3" />
+                <path d="M12 11v1" />
+            </svg></div>
+        <h3>OCR (Scanned PDF to Excel)</h3>
+        <p class="desc">AI text extraction engine</p>
+        <div class="upload-wrap-clone">
+            <div class="input-bar-clone">
+                <span class="browse-btn-clone">Browse...</span>
+                <span class="file-name-clone" id="ocrFileName">Select file</span>
+                <input type="file" id="ocrFile" accept=".pdf" onchange="upFN('ocr')">
+            </div>
+        </div>
+        <button class="btn-clone btn-orange-cl" onclick="subOCR(event)">Start OCR</button>
+        <button id="ocrDownloadBtn" class="btn-clone btn-green-cl"
+            style="display:none; margin-top:12px;">Download</button>
+    </div>
+</div>
+
+<div class="premium-header">Premium Features (Coming Soon)</div>
+<div class="grid-clone" style="opacity: 0.9;">
+    <!-- History -->
+    <div class="card-clone" style="border: 1px solid rgba(255,255,255,0.1); position:relative; overflow:hidden;">
+        <div class="icon-clone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+            </svg></div>
+        <h3>File History</h3>
+        <p class="desc">View last 5 files</p>
+        <div id="historyList" class="premium-blur"
+            style="width:100%; text-align:left; font-size:0.8rem; line-height:1.6; color:var(--text-dim);">
+            • invoice_jan_24.csv<br>• table_scan_01.pdf<br>• merge_doc_v2.pdf
+        </div>
+        <div class="lock-overlay">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+        </div>
+        <p style="font-size:0.7rem; color:var(--text-dim); margin-top:10px;">Upgrade required (Coming Soon)</p>
+    </div>
+
+    <!-- Smart Error -->
+    <div class="card-clone" style="border: 1px solid rgba(255,255,255,0.1);">
+        <div class="icon-clone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg></div>
+        <h3>Smart Error Detection</h3>
+        <p class="desc">Fix file issues automatically</p>
+        <div class="lock-overlay"
+            style="position:relative; transform:none; left:0; top:0; display:inline-block; margin-bottom:10px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+        </div>
+        <p style="font-size:0.7rem; color:var(--text-dim);">Upgrade required (Coming Soon)</p>
+    </div>
+
+    <!-- Rename -->
+    <div class="card-clone" style="border: 1px solid rgba(255,255,255,0.1);">
+        <div class="icon-clone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg></div>
+        <h3>Auto File Rename</h3>
+        <p class="desc">Organized naming patterns</p>
+        <div class="lock-overlay"
+            style="position:relative; transform:none; left:0; top:0; display:inline-block; margin-bottom:10px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+        </div>
+        <p style="font-size:0.7rem; color:var(--text-dim);">Upgrade required (Coming Soon)</p>
+    </div>
+</div>
+
+<div style="text-align:center; margin: 40px 0;">
+    <button class="btn-clone btn-off-cl" style="width:200px; background:#333; color:#aaa;">Upgrade to Premium</button>
+</div>
+
+<footer class="footer-clone">
+    <div class="f-links-clone">
+        <a href="/terms">Terms & Conditions</a>
+        <a href="/privacy">Privacy Policy</a>
+        <a href="#">Contact Us</a>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; font-weight:600; color:#94a3b8;">
+        <div style="width:20px; height:20px; background:#3b82f6; border-radius:4px;"></div>
+        <span>AutomateNow</span>
+    </div>
+</footer>
+
+<a href="https://wa.me/918573821917" class="support-clone" target="_blank">
+    <div class="support-icon-cl"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5">
+            <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z" />
+        </svg></div>
+    <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase;">Support</span>
+</a>
 
 <script>
-let currentJobId = "";
+    let curJobId = null;
+    let curTool = null;
 
-/* ---------------- INVOICE ---------------- */
-
-async function submitInvoice() {
-    const file = document.getElementById("invoiceFile").files[0];
-    if (!file) return alert("Select CSV file");
-
-    const fd = new FormData();
-    fd.append("file", file);
-
-    const res = await fetch("/invoice", { method: "POST", body: fd });
-    const data = await res.json();
-
-    if (data.status === "ready") {
-        currentJobId = data.job_id;
-        document.getElementById("invoiceLock").style.display = "block";
-        document.getElementById("invoicePayBtn").disabled = false;
-    } else {
-        alert("Invoice generation failed");
+    function togglePanel() {
+        document.getElementById('sidePanel').classList.toggle('open');
     }
-}
 
-/* ---------------- CSV CLEANER ---------------- */
-
-async function submitCSV() {
-    const file = document.getElementById("csvFile").files[0];
-    if (!file) return alert("Select CSV file");
-
-    const fd = new FormData();
-    fd.append("file", file);
-
-    const res = await fetch("/csv-cleaner", { method: "POST", body: fd });
-    const data = await res.json();
-
-    if (data.status === "ready") {
-        document.getElementById("csvLock").style.display = "block";
-        document.getElementById("csvPayBtn").disabled = false;
-    } else {
-        alert("CSV cleaning failed");
+    function showToast(msg) {
+        const t = document.getElementById('toastMsg');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
     }
-}
 
-/* ---------------- PDF ---------------- */
+    // History Logic (Visual Only for now as requested)
+    const historyData = JSON.parse(localStorage.getItem('fileHistory') || "[]");
 
-async function submitPDF() {
-    const file = document.getElementById("pdfFile").files[0];
-    if (!file) return alert("Select PDF file");
-
-    const fd = new FormData();
-    fd.append("file", file);
-
-    const res = await fetch("/pdf-to-excel", { method: "POST", body: fd });
-    const data = await res.json();
-
-    if (data.status === "ready") {
-        document.getElementById("pdfLock").style.display = "block";
-        document.getElementById("pdfPayBtn").disabled = false;
-    } else {
-        alert("PDF conversion failed");
+    function addToHistory(name) {
+        const item = { name: name, date: new Date().toLocaleDateString() };
+        historyData.unshift(item);
+        if (historyData.length > 5) historyData.pop();
+        localStorage.setItem('fileHistory', JSON.stringify(historyData));
+        renderHistory();
     }
-}
 
-/* ---------------- PAYMENT ---------------- */
+    function renderHistory() {
+        // Since it's premium locked, we just show a blurred list of what's there or placeholders
+        // But let's verify if we want to show real data blurred
+        const list = document.getElementById('historyList');
+        if (historyData.length === 0) {
+            list.innerHTML = "• No history yet";
+            return;
+        }
+        list.innerHTML = historyData.map(i => `• ${i.name}`).join('<br>');
+    }
 
-async function startPayment() {
-    const res = await fetch("/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: currentJobId })
+    renderHistory();
+
+
+    function upFN(t) {
+        const i = document.getElementById(t + 'File');
+        const d = document.getElementById(t + 'FileName');
+        if (i.files.length > 0) {
+            d.textContent = i.files[0].name;
+            d.style.color = "var(--text)";
+        }
+    }
+
+    async function subInv(e) {
+        const f = document.getElementById("invoiceFile").files[0];
+        if (!f) return alert("Select file");
+        addToHistory(f.name);
+        const fd = new FormData(); fd.append("file", f);
+        const b = e.target; b.innerHTML = "Submitting..."; b.disabled = true;
+        try {
+            const res = await fetch("/invoice", { method: "POST", body: fd });
+            if (!res.ok) throw new Error((await res.json()).error || "Error processing");
+            const d = await res.json();
+            if (d.status === "ready") {
+                curJobId = d.job_id; curTool = "invoice";
+                localStorage.setItem("job_id", curJobId); localStorage.setItem("tool", curTool);
+                if (d.free) pollS(curJobId); else alert("Limit exceeded");
+            } else { b.innerHTML = "Generate"; b.disabled = false; }
+        } catch (err) { alert(err.message); b.innerHTML = "Generate"; b.disabled = false; }
+    }
+
+    async function subCSV(e) {
+        const f = document.getElementById("csvFile").files[0];
+        if (!f) return alert("Select file");
+        addToHistory(f.name);
+        const fd = new FormData(); fd.append("file", f);
+        const b = e.target; b.innerHTML = "Cleaning..."; b.disabled = true;
+        try {
+            const res = await fetch("/csv-cleaner", { method: "POST", body: fd });
+            if (!res.ok) throw new Error((await res.json()).error || "Error processing");
+            const d = await res.json();
+            if (d.status === "ready") {
+                curJobId = d.job_id; curTool = "csv";
+                localStorage.setItem("job_id", curJobId); localStorage.setItem("tool", curTool);
+                if (d.free) pollS(curJobId); else alert("Limit exceeded");
+            } else { b.innerHTML = "Clean CSV"; b.disabled = false; }
+        } catch (err) { alert(err.message); b.innerHTML = "Clean CSV"; b.disabled = false; }
+    }
+
+    async function subPDF(e) {
+        const f = document.getElementById("pdfFile").files[0];
+        if (!f) return alert("Select file");
+        addToHistory(f.name);
+        const fd = new FormData(); fd.append("file", f);
+        const b = e.target; b.innerHTML = "Converting..."; b.disabled = true;
+        try {
+            const res = await fetch("/pdf-to-excel", { method: "POST", body: fd });
+            if (!res.ok) throw new Error((await res.json()).error || "Error processing");
+            const d = await res.json();
+            if (d.status === "ready") {
+                curJobId = d.job_id; curTool = "pdf";
+                localStorage.setItem("job_id", curJobId); localStorage.setItem("tool", curTool);
+                if (d.free) pollS(curJobId); else alert("Limit exceeded");
+            } else { b.innerHTML = "Convert PDF"; b.disabled = false; }
+        } catch (err) { alert(err.message); b.innerHTML = "Convert PDF"; b.disabled = false; }
+    }
+
+    async function subOCR(e) {
+        const f = document.getElementById("ocrFile").files[0];
+        if (!f) return alert("Select file");
+        addToHistory(f.name);
+        const fd = new FormData(); fd.append("file", f);
+        const b = e.target; b.innerHTML = "Processing..."; b.disabled = true;
+        try {
+            // Re-using pdf-to-excel endpoint as it now supports OCR
+            const res = await fetch("/pdf-to-excel", { method: "POST", body: fd });
+            if (!res.ok) throw new Error((await res.json()).error || "Error processing");
+            const d = await res.json();
+            if (d.status === "ready") {
+                curJobId = d.job_id; curTool = "ocr";
+                localStorage.setItem("job_id", curJobId); localStorage.setItem("tool", curTool);
+                if (d.free) pollS(curJobId); else alert("Limit exceeded");
+            } else { b.innerHTML = "Start OCR"; b.disabled = false; }
+        } catch (err) { alert(err.message); b.innerHTML = "Start OCR"; b.disabled = false; }
+    }
+
+    let pdfMode = 'merge';
+
+    function setMode(m) {
+        pdfMode = m;
+        document.getElementById('mergeModeBtn').classList.toggle('active', m === 'merge');
+        document.getElementById('splitModeBtn').classList.toggle('active', m === 'split');
+        document.getElementById('pdfToolDesc').textContent = m === 'merge' ? 'Combine multiple documents' : 'Split into individual pages';
+        document.getElementById('pdfActionBtn').textContent = m === 'merge' ? 'Merge PDFs' : 'Split PDF';
+
+        const input = document.getElementById('pdfMergeFile');
+        if (m === 'merge') {
+            input.setAttribute('multiple', '');
+            document.getElementById('pdfMergeFileName').textContent = 'Select files';
+        } else {
+            input.removeAttribute('multiple');
+            document.getElementById('pdfMergeFileName').textContent = 'Select file';
+        }
+        document.getElementById('pdfError').style.display = 'none';
+    }
+
+    function upFNMultiple(t) {
+        const i = document.getElementById(t + 'File');
+        const d = document.getElementById(t + 'FileName');
+        if (i.files.length > 0) {
+            if (i.files.length === 1) {
+                d.textContent = i.files[0].name;
+            } else {
+                d.textContent = i.files.length + " files selected";
+            }
+            d.style.color = "var(--text)";
+        }
+    }
+
+    async function subPDFTool(e) {
+        const i = document.getElementById("pdfMergeFile");
+        const files = i.files;
+        const errDiv = document.getElementById('pdfError');
+        errDiv.style.display = 'none';
+
+        if (files.length === 0) {
+            errDiv.textContent = "Please select file(s)";
+            errDiv.style.display = 'block';
+            return;
+        }
+
+        if (pdfMode === 'merge' && files.length < 2) {
+            errDiv.textContent = "Select at least 2 files to merge";
+            errDiv.style.display = 'block';
+            return;
+        }
+
+        addToHistory(pdfMode === 'merge' ? "Merged PDFs" : files[0].name);
+
+        const fd = new FormData();
+        if (pdfMode === 'merge') {
+            for (let f of files) fd.append("files", f);
+        } else {
+            fd.append("file", files[0]);
+        }
+
+        const b = e.target;
+        const originalText = b.textContent;
+        b.innerHTML = '<span class="spinner"></span> Processing...';
+        b.disabled = true;
+        i.disabled = true;
+
+        try {
+            const url = pdfMode === 'merge' ? "/pdf-merge" : "/pdf-split";
+            const res = await fetch(url, { method: "POST", body: fd });
+            if (!res.ok) throw new Error((await res.json()).error || "Error processing");
+
+            const d = await res.json();
+            if (d.status === "ready") {
+                curJobId = d.job_id; curTool = "pdf_tool";
+                localStorage.setItem("job_id", curJobId); localStorage.setItem("tool", curTool);
+                if (d.free) pollS(curJobId); else {
+                    errDiv.textContent = "Limit exceeded";
+                    errDiv.style.display = 'block';
+                    b.innerHTML = originalText; b.disabled = false; i.disabled = false;
+                }
+            } else {
+                b.innerHTML = originalText; b.disabled = false; i.disabled = false;
+            }
+        } catch (err) {
+            errDiv.textContent = err.message || "Processing failure";
+            errDiv.style.display = 'block';
+            b.innerHTML = originalText; b.disabled = false; i.disabled = false;
+        }
+    }
+
+    async function subExcelFormula(e) {
+        const promptInput = document.getElementById("excelPrompt");
+        const prompt = promptInput.value.trim();
+        const errDiv = document.getElementById('excelError');
+        const outputContainer = document.getElementById('excelOutputContainer');
+
+        // Reset state before generation
+        errDiv.style.display = 'none';
+        outputContainer.style.display = 'none';
+        document.getElementById('excelFormulaResult').textContent = '';
+        document.getElementById('excelExplanationResult').textContent = '';
+
+        if (!prompt) {
+            errDiv.textContent = "Please describe the formula you need";
+            errDiv.style.display = 'block';
+            return;
+        }
+
+        const b = e.target;
+        const originalText = b.textContent;
+        b.innerHTML = '<span class="spinner"></span> Generating...';
+        b.disabled = true;
+        promptInput.disabled = true;
+
+        try {
+            const res = await fetch("/excel-formula", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: prompt })
+            });
+
+            if (!res.ok) throw new Error(await res.text());
+
+            const d = await res.json();
+            document.getElementById('excelFormulaResult').textContent = d.formula;
+            document.getElementById('excelExplanationResult').textContent = d.explanation;
+            outputContainer.style.display = 'block';
+
+            b.innerHTML = originalText; b.disabled = false; promptInput.disabled = false;
+        } catch (err) {
+            errDiv.textContent = err.message || "Generation failure";
+            errDiv.style.display = 'block';
+            b.innerHTML = originalText; b.disabled = false; promptInput.disabled = false;
+        }
+    }
+
+    function copyFormula() {
+        const formula = document.getElementById('excelFormulaResult').textContent;
+        navigator.clipboard.writeText(formula).then(() => {
+            const btn = document.querySelector('.copy-btn-small');
+            const originalText = btn.textContent;
+            btn.textContent = "Copied!";
+            setTimeout(() => { btn.textContent = originalText; }, 2000);
+        });
+    }
+
+    function pollS(j) {
+        const iv = setInterval(async () => {
+            try {
+                const res = await fetch(`/check-status/${j}`);
+                const d = await res.json();
+                if (d.status === "paid") {
+                    clearInterval(iv);
+                    let dBtn, subBtn, toolKey;
+                    if (curTool === "invoice") { dBtn = document.getElementById("invoiceDownloadBtn"); subBtn = document.querySelector('button[onclick="subInv(event)"]'); toolKey = "invoice"; }
+                    if (curTool === "csv") { dBtn = document.getElementById("csvDownloadBtn"); subBtn = document.querySelector('button[onclick="subCSV(event)"]'); toolKey = "csv"; }
+                    if (curTool === "pdf") { dBtn = document.getElementById("pdfDownloadBtn"); subBtn = document.querySelector('button[onclick="subPDF(event)"]'); toolKey = "pdf"; }
+                    if (curTool === "ocr") { dBtn = document.getElementById("ocrDownloadBtn"); subBtn = document.querySelector('button[onclick="subOCR(event)"]'); toolKey = "ocr"; }
+                    if (curTool === "pdf_tool") { dBtn = document.getElementById("pdfMergeDownloadBtn"); subBtn = document.getElementById("pdfActionBtn"); toolKey = "pdfMerge"; }
+
+                    if (subBtn) subBtn.style.display = "none";
+                    if (dBtn) {
+                        dBtn.style.display = "block";
+                        dBtn.onclick = () => {
+                            window.location.href = `/download/${j}`;
+                            setTimeout(() => resetTool(toolKey, dBtn, subBtn), 1500);
+                        };
+                    }
+                }
+            } catch (e) { clearInterval(iv); }
+        }, 2000);
+    }
+
+    function resetTool(t, dBtn, subBtn) {
+        dBtn.style.display = "none";
+        subBtn.style.display = "block";
+        subBtn.disabled = false;
+
+        if (t === "pdfMerge") {
+            const i = document.getElementById(t + 'File');
+            const d = document.getElementById(t + 'FileName');
+            i.value = "";
+            i.disabled = false;
+            d.textContent = pdfMode === 'merge' ? 'Select files' : 'Select file';
+            d.style.color = "var(--text-dim)";
+        } else {
+            const i = document.getElementById(t + 'File');
+            const d = document.getElementById(t + 'FileName');
+            i.value = "";
+            d.textContent = "Select file";
+            d.style.color = "var(--text-dim)";
+
+            // Re-enable other specific buttons if needed
+            if (t === "invoice") subBtn.innerHTML = "Generate";
+            if (t === "csv") subBtn.innerHTML = "Clean CSV";
+            if (t === "pdf") subBtn.innerHTML = "Convert PDF";
+            if (t === "ocr") subBtn.innerHTML = "Start OCR";
+        }
+
+        if (t === "pdfMerge") {
+            subBtn.innerHTML = pdfMode === 'merge' ? 'Merge PDFs' : 'Split PDF';
+        }
+
+        localStorage.removeItem("job_id");
+        localStorage.removeItem("tool");
+        curJobId = null;
+        curTool = null;
+    }
+
+    function toggleTheme() {
+        const body = document.body;
+        const icon = document.getElementById('themeIcon');
+        body.classList.toggle('light-theme');
+        const isLight = body.classList.contains('light-theme');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+
+        if (isLight) {
+            // Light Mode -> Show Sun
+            icon.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+        } else {
+            // Dark Mode -> Show Moon
+            icon.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+        }
+    }
+
+    window.addEventListener("load", () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') toggleTheme();
+
+        const j = localStorage.getItem("job_id");
+        const t = localStorage.getItem("tool");
+        if (j && t) { curJobId = j; curTool = t; pollS(j); }
     });
 
-    const order = await res.json();
-
-    const options = {
-        key: order.key,
-        amount: order.amount,
-        currency: "INR",
-        name: "Automation Platform",
-        description: "File Unlock",
-        order_id: order.order_id,
-        handler: function () {
-            startPolling(currentJobId);
+    // Add spinner styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
         }
-    };
-
-    new Razorpay(options).open();
-}
-
-/* ---------------- POLLING ---------------- */
-
-function startPolling(jobId) {
-    const interval = setInterval(async () => {
-        const res = await fetch(`/check-status/${jobId}`);
-        const data = await res.json();
-
-        if (data.status === "paid") {
-            clearInterval(interval);
-
-            document.getElementById("invoicePayBtn").style.display = "none";
-
-            const btn = document.getElementById("invoiceDownloadBtn");
-            btn.style.display = "block";
-            btn.onclick = () => {
-                window.location.href = `/download/${jobId}`;
-            };
-        }
-    }, 2000);
-}
-
-document.getElementById("invoicePayBtn").onclick = startPayment;
-document.getElementById("csvPayBtn").onclick = startPayment;
-document.getElementById("pdfPayBtn").onclick = startPayment;
+        @keyframes spin { to { transform: rotate(360deg); } }
+    `;
+    document.head.appendChild(style);
 </script>
-
 {% endblock %}

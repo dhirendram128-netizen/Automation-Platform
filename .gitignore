@@ -1,15 +1,21 @@
+__pycache__/
+*.pyc
+test*.py
+demo_*.py
+verify_*.py
+*.pdf
 # Virtual env
 venv/
+
+# Runtime folders
+uploads/
+outputs/
+
+# Runtime files
+*.csv
+jobs.json
 
 # Python cache
 __pycache__/
 *.pyc
-
-# Runtime / generated files
-jobs.json
-uploads/
-outputs/
-
-# Env
-.env
 
