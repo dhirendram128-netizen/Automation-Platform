@@ -7,6 +7,9 @@ pdfplumber
 openpyxl
 razorpay
 pypdf
+pytesseract
+Pillow
+opencv-python-headless
 
 
 
